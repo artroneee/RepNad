@@ -1,6 +1,6 @@
 import warnings
 import requests
-from ip_rep_auto_list import url_nad, login, password
+from config import url_nad, login, password
 def check():
     #функция вывода содержимого реп. списка
     warnings.filterwarnings('ignore')  

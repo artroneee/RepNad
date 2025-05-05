@@ -4,16 +4,13 @@ import os
 import requests
 import urllib3
 import json
+from config import url_nad, login, password
 from add import *
 from remove import *
 from check_list import *
 
 
 #сбор данных
-print("""RᴇᴘNAD ʙʏ ᴀʀᴛʀᴏɴᴇ""")
-url_nad = input('Введите адрес вашего NAD в формате https://your_nad_ip/api/v2 : ')
-login = input('Введите логин: ')
-password = input('Введите пароль: ')
 r = requests.Session()
 warnings.filterwarnings('ignore') #игнорирование ошибок
 

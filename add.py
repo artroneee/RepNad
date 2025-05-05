@@ -5,7 +5,7 @@ import requests
 import urllib3
 import json as js
 import re
-from ip_rep_auto_list import url_nad, login, password
+from config import url_nad, login, password
 
 def validate_ip_address(ip):
     # Регулярное выражение для проверки формата IP адреса
