@@ -22,7 +22,7 @@ def remove():
 
 
     name = input('Введите название репутационного списка: ')
-    response = r.get(url_nad +f'/replists?search={name}')
+    response = r.get(url_nad +f'/replists?search={name}',verify=False)
     checker = response.json()
     if ("count" in checker and checker['count'] > 0):
         print(f'Список {name} найден.')
@@ -44,7 +44,7 @@ def remove():
             return
     r.headers = {"X-CSRFToken": r.cookies.get_dict()['csrftoken'], "Referer": url_nad} #если не будет работать, то в качестве реферера указывайте просто https://your_nad_ip/
     json = [f"{ip}" for ip in ips]
-    response = r.post(url_nad+f'/replists/dynamic/{ext_key}/_delete', json=json)
+    response = r.post(url_nad+f'/replists/dynamic/{ext_key}/_delete', json=json,verify=False)
     if (response.status_code == 204):
         print('Успех')
     else:

@@ -21,7 +21,7 @@ def add():
     r = requests.Session()
     response = r.post(url_nad + "/auth/login", json={"username": login,"password": password},verify=False)
     name = input('Введите название репутационного списка: ')
-    response = r.get(url_nad + f'/replists?search={name}')
+    response = r.get(url_nad + f'/replists?search={name}',verify=False)
     checker = response.json()
     if ("count" in checker and checker['count'] > 0):
         print(f'Список {name} найден.')
@@ -45,7 +45,7 @@ def add():
     r.headers = {"X-CSRFToken": r.cookies.get_dict()['csrftoken'], "Referer": url_nad} #если не будет работать, то в качестве реферера указывайте просто https://your_nad_ip/
     json = [{"value": ip} for ip in ips]
 
-    response = r.post(url_nad + f'/replists/dynamic/{ext_key}/_bulk', json=json)
+    response = r.post(url_nad + f'/replists/dynamic/{ext_key}/_bulk', json=json,verify=False)
     if (response.status_code == 200):
         print('Успех')
     else:
