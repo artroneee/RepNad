@@ -1,25 +1,25 @@
-import wget
-import warnings
-import os
-import requests
-import urllib3
-import json
+import urllib.request
 from config import url_nad, login, password
 from add import *
 from remove import *
 from check_list import *
 
 
-#сбор данных
+
 r = requests.Session()
-warnings.filterwarnings('ignore') #игнорирование ошибок
+warnings.filterwarnings('ignore')
 
 
 
 def connect():
     #функция установки соединения
     wget.download('https://feodotracker.abuse.ch/downloads/ipblocklist.json')  # скачиваем таблицу
-    print()
+    print('Файл с ресурса feodotracker успешно скачан!')
+    warnings.filterwarnings('ignore')
+    url = 'https://threatfox.abuse.ch/export/json/ip-port/recent/'
+    filename = 'threatfox_recent_ips.json'
+    urllib.request.urlretrieve(url, filename)
+    print('Файл с ресурса threatfox успешно скачан!')
     warnings.filterwarnings('ignore')
 
     response = r.post(url_nad + "/auth/login", json={"username": login,"password": password},verify=False) #создаем сессию
@@ -39,34 +39,55 @@ def connect():
         exit("CSRF токен не найден")
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning())  
 
-    parse_file('ipblocklist.json',csrf, sessionid)
+    parse_file('ipblocklist.json', csrf, sessionid)
+    parse_file('threatfox_recent_ips.json', csrf, sessionid)
 
 def parse_file(filename ,csrf, sessionid): 
     #функция парсинга файла по ВПО
     ip_malware_pairs = []
     malwares_temp = []
-    with open(filename, 'r') as file:
-        data = json.load(file) 
-        for item in data:
-            ip_address = item.get("ip_address")
-            malware = item.get("malware")
-            if ip_address or malware: 
-                if ip_address == '':
-                    continue
-                elif malware == '':
-                    ip_malware_pairs.append((ip_address, 'null'))
-                else:
+    if filename == 'ipblocklist.json':
+        with open(filename, 'r') as file:
+            data = json.load(file)
+            for item in data:
+                ip_address = item.get("ip_address")
+                malware = item.get("malware")
+                if ip_address or malware:
+                    if ip_address == '':
+                        continue
+                    elif malware == '':
+                        ip_malware_pairs.append((ip_address, 'null'))
+                    else:
+                        ip_malware_pairs.append((ip_address, malware))
+                        malwares_temp.append(malware)
+    if filename == 'threatfox_recent_ips.json':
+        with open(filename, 'r') as file:
+            data = json.load(file)
+            for key in data:
+                items = data[key]  # Получаем список элементов для каждого ключа
+                for item in items:
+                    ip_with_port = item.get("ioc_value")
+                    ip_address = ip_with_port.split(":")[0]
+                    malware = item.get("malware")
+                    malware = malware.replace(".", "_")
+                    if not ip_address:
+                        continue  # Пропускаем, если нет IP
+                    if not malware:
+                        malware = "null"
                     ip_malware_pairs.append((ip_address, malware))
                     malwares_temp.append(malware)
     malwares = list(set(malwares_temp))
-    print('Найден следующий список ВПО: ', end='')
+    print(f'Найден следующий список ВПО для {filename}: ', end='')
     for i in range(0, len(malwares)):
         if (i != len(malwares)-1):
             print(malwares[i], end=', ')
         else:
             print(malwares[i])
-    os.remove("ipblocklist.json")  # удаляем в конце таблицу
-    sort(ip_malware_pairs, malwares,csrf, sessionid)
+    if filename == 'ipblocklist.json':
+        os.remove("ipblocklist.json")  # удаляем в конце таблицу
+    elif filename == 'threatfox_recent_ips.json':
+        os.remove("threatfox_recent_ips.json")
+    sort(ip_malware_pairs, malwares, csrf, sessionid)
 
 
 def sort(ip_malware_pairs, malwares,csrf, sessionid): 
